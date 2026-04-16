@@ -1,0 +1,36 @@
+[project]
+name = "pyconn"
+version = "0.1.0"
+description = "Hardened MicroPython system for Seeed Studio ESP32-C3 + 60GHz mmWave radar"
+authors = [
+    { name = "shawal-mbalire", email = "mbalireshawal@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "esptool>=4.7.0",          # chip flash/erase
+    "mpremote>=1.20.0",        # REPL, file push, exec
+    "python-minifier>=2.11.0", # source obfuscation / name mangling
+    "python-pptx>=0.6.21",     # slide-deck generator
+    "pyserial>=3.5",           # serial port utilities
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.4.0",
+]
+
+[tool.uv]
+managed = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = ["firmware/**", ".build/**", "output/**"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+

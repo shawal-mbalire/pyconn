@@ -13,19 +13,21 @@ Usage
     python tools/ppt/generate_ppt.py            # -> output/pyconn_overview.pptx
     python tools/ppt/generate_ppt.py --out my.pptx
 """
+
 import argparse
 import os
+
 from pptx import Presentation
-from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
+from pptx.util import Inches, Pt
 
 # ── Palette ──────────────────────────────────────────────────────────────────
-_BG      = RGBColor(0x0D, 0x11, 0x17)   # near-black
-_ACCENT  = RGBColor(0x00, 0xD4, 0x8A)   # teal-green
-_WHITE   = RGBColor(0xFF, 0xFF, 0xFF)
-_GREY    = RGBColor(0x8B, 0x94, 0x9E)
-_YELLOW  = RGBColor(0xFF, 0xD7, 0x00)
+_BG = RGBColor(0x0D, 0x11, 0x17)  # near-black
+_ACCENT = RGBColor(0x00, 0xD4, 0x8A)  # teal-green
+_WHITE = RGBColor(0xFF, 0xFF, 0xFF)
+_GREY = RGBColor(0x8B, 0x94, 0x9E)
+_YELLOW = RGBColor(0xFF, 0xD7, 0x00)
 
 # ── Slide dimensions (16:9 widescreen) ───────────────────────────────────────
 _W = Inches(13.33)
@@ -34,6 +36,7 @@ _H = Inches(7.5)
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
+
 def _bg(slide):
     """Fill slide background with dark colour."""
     fill = slide.background.fill
@@ -41,18 +44,28 @@ def _bg(slide):
     fill.fore_color.rgb = _BG
 
 
-def _add_textbox(slide, text, left, top, width, height,
-                 size=20, bold=False, color=_WHITE, align=PP_ALIGN.LEFT,
-                 wrap=True):
+def _add_textbox(
+    slide,
+    text,
+    left,
+    top,
+    width,
+    height,
+    size=20,
+    bold=False,
+    color=_WHITE,
+    align=PP_ALIGN.LEFT,
+    wrap=True,
+):
     txBox = slide.shapes.add_textbox(left, top, width, height)
-    tf    = txBox.text_frame
+    tf = txBox.text_frame
     tf.word_wrap = wrap
-    p  = tf.paragraphs[0]
+    p = tf.paragraphs[0]
     p.alignment = align
     run = p.add_run()
     run.text = text
-    run.font.size  = Pt(size)
-    run.font.bold  = bold
+    run.font.size = Pt(size)
+    run.font.bold = bold
     run.font.color.rgb = color
     return txBox
 
@@ -61,7 +74,10 @@ def _accent_bar(slide, top=Inches(1.05)):
     """Thin horizontal accent rule under the title."""
     line = slide.shapes.add_shape(
         1,  # MSO_SHAPE_TYPE.RECTANGLE
-        Inches(0.5), top, Inches(12.33), Inches(0.04),
+        Inches(0.5),
+        top,
+        Inches(12.33),
+        Inches(0.04),
     )
     line.fill.solid()
     line.fill.fore_color.rgb = _ACCENT
@@ -71,52 +87,107 @@ def _accent_bar(slide, top=Inches(1.05)):
 def _title_slide(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])  # blank
     _bg(slide)
-    _add_textbox(slide, "pyconn",
-                 Inches(0.5), Inches(1.8), Inches(12), Inches(1.2),
-                 size=54, bold=True, color=_ACCENT, align=PP_ALIGN.CENTER)
-    _add_textbox(slide,
-                 "Hardened MicroPython  |  ESP32-C3  +  60GHz mmWave Radar",
-                 Inches(0.5), Inches(3.1), Inches(12), Inches(0.6),
-                 size=22, color=_WHITE, align=PP_ALIGN.CENTER)
-    _add_textbox(slide,
-                 "Python-native RTOS  •  Zero-alloc hot path  •  Cooperative WDT",
-                 Inches(0.5), Inches(3.8), Inches(12), Inches(0.5),
-                 size=16, color=_GREY, align=PP_ALIGN.CENTER)
+    _add_textbox(
+        slide,
+        "pyconn",
+        Inches(0.5),
+        Inches(1.8),
+        Inches(12),
+        Inches(1.2),
+        size=54,
+        bold=True,
+        color=_ACCENT,
+        align=PP_ALIGN.CENTER,
+    )
+    _add_textbox(
+        slide,
+        "Hardened MicroPython  |  ESP32-C3  +  60GHz mmWave Radar",
+        Inches(0.5),
+        Inches(3.1),
+        Inches(12),
+        Inches(0.6),
+        size=22,
+        color=_WHITE,
+        align=PP_ALIGN.CENTER,
+    )
+    _add_textbox(
+        slide,
+        "Python-native RTOS  •  Zero-alloc hot path  •  Cooperative WDT",
+        Inches(0.5),
+        Inches(3.8),
+        Inches(12),
+        Inches(0.5),
+        size=16,
+        color=_GREY,
+        align=PP_ALIGN.CENTER,
+    )
     _accent_bar(slide, top=Inches(4.6))
-    _add_textbox(slide, "github.com/shawal-mbalire/pyconn",
-                 Inches(0.5), Inches(4.8), Inches(12), Inches(0.4),
-                 size=13, color=_GREY, align=PP_ALIGN.CENTER)
+    _add_textbox(
+        slide,
+        "github.com/shawal-mbalire/pyconn",
+        Inches(0.5),
+        Inches(4.8),
+        Inches(12),
+        Inches(0.4),
+        size=13,
+        color=_GREY,
+        align=PP_ALIGN.CENTER,
+    )
 
 
 def _pattern_slide(prs, number, title, subtitle, bullets, code_snippet=""):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     _bg(slide)
-    _add_textbox(slide, f"Pattern {number}", Inches(0.5), Inches(0.2),
-                 Inches(4), Inches(0.4), size=12, color=_ACCENT)
-    _add_textbox(slide, title, Inches(0.5), Inches(0.55),
-                 Inches(12), Inches(0.65), size=30, bold=True, color=_WHITE)
-    _add_textbox(slide, subtitle, Inches(0.5), Inches(1.25),
-                 Inches(12), Inches(0.4), size=14, color=_GREY)
+    _add_textbox(
+        slide,
+        f"Pattern {number}",
+        Inches(0.5),
+        Inches(0.2),
+        Inches(4),
+        Inches(0.4),
+        size=12,
+        color=_ACCENT,
+    )
+    _add_textbox(
+        slide,
+        title,
+        Inches(0.5),
+        Inches(0.55),
+        Inches(12),
+        Inches(0.65),
+        size=30,
+        bold=True,
+        color=_WHITE,
+    )
+    _add_textbox(
+        slide, subtitle, Inches(0.5), Inches(1.25), Inches(12), Inches(0.4), size=14, color=_GREY
+    )
     _accent_bar(slide, top=Inches(1.7))
 
     # Bullet points
     bullet_text = "\n".join(f"  {b}" for b in bullets)
-    _add_textbox(slide, bullet_text, Inches(0.5), Inches(1.85),
-                 Inches(5.8), Inches(4.5), size=14, color=_WHITE)
+    _add_textbox(
+        slide,
+        bullet_text,
+        Inches(0.5),
+        Inches(1.85),
+        Inches(5.8),
+        Inches(4.5),
+        size=14,
+        color=_WHITE,
+    )
 
     # Code block (right panel)
     if code_snippet:
-        box = slide.shapes.add_shape(1,
-            Inches(6.6), Inches(1.85), Inches(6.2), Inches(4.8))
+        box = slide.shapes.add_shape(1, Inches(6.6), Inches(1.85), Inches(6.2), Inches(4.8))
         box.fill.solid()
         box.fill.fore_color.rgb = RGBColor(0x16, 0x1B, 0x22)
         box.line.color.rgb = _ACCENT
 
-        txBox = slide.shapes.add_textbox(
-            Inches(6.75), Inches(2.0), Inches(5.9), Inches(4.5))
+        txBox = slide.shapes.add_textbox(Inches(6.75), Inches(2.0), Inches(5.9), Inches(4.5))
         tf = txBox.text_frame
         tf.word_wrap = False
-        p  = tf.paragraphs[0]
+        p = tf.paragraphs[0]
         run = p.add_run()
         run.text = code_snippet
         run.font.size = Pt(10)
@@ -127,8 +198,17 @@ def _pattern_slide(prs, number, title, subtitle, bullets, code_snippet=""):
 def _layout_slide(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     _bg(slide)
-    _add_textbox(slide, "Monorepo Layout", Inches(0.5), Inches(0.2),
-                 Inches(12), Inches(0.65), size=30, bold=True, color=_WHITE)
+    _add_textbox(
+        slide,
+        "Monorepo Layout",
+        Inches(0.5),
+        Inches(0.2),
+        Inches(12),
+        Inches(0.65),
+        size=30,
+        bold=True,
+        color=_WHITE,
+    )
     _accent_bar(slide, top=Inches(0.95))
 
     tree = (
@@ -148,17 +228,15 @@ def _layout_slide(prs):
         "  ppt/             # This slide generator\n"
         "justfile           # 11 top-level recipes"
     )
-    box = slide.shapes.add_shape(1,
-        Inches(0.5), Inches(1.1), Inches(12.3), Inches(5.8))
+    box = slide.shapes.add_shape(1, Inches(0.5), Inches(1.1), Inches(12.3), Inches(5.8))
     box.fill.solid()
     box.fill.fore_color.rgb = RGBColor(0x16, 0x1B, 0x22)
     box.line.color.rgb = _ACCENT
 
-    txBox = slide.shapes.add_textbox(
-        Inches(0.7), Inches(1.25), Inches(12.0), Inches(5.5))
+    txBox = slide.shapes.add_textbox(Inches(0.7), Inches(1.25), Inches(12.0), Inches(5.5))
     tf = txBox.text_frame
     tf.word_wrap = False
-    p  = tf.paragraphs[0]
+    p = tf.paragraphs[0]
     run = p.add_run()
     run.text = tree
     run.font.size = Pt(13)
@@ -169,9 +247,17 @@ def _layout_slide(prs):
 def _dataflow_slide(prs):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     _bg(slide)
-    _add_textbox(slide, "Firmware Data-Flow",
-                 Inches(0.5), Inches(0.2), Inches(12), Inches(0.65),
-                 size=30, bold=True, color=_WHITE)
+    _add_textbox(
+        slide,
+        "Firmware Data-Flow",
+        Inches(0.5),
+        Inches(0.2),
+        Inches(12),
+        Inches(0.65),
+        size=30,
+        bold=True,
+        color=_WHITE,
+    )
     _accent_bar(slide, top=Inches(0.95))
 
     flow = (
@@ -197,17 +283,15 @@ def _dataflow_slide(prs):
         "  on_event(dict)  -->  MQTT / ESP-NOW / AI inference"
     )
 
-    box = slide.shapes.add_shape(1,
-        Inches(0.5), Inches(1.1), Inches(12.3), Inches(5.9))
+    box = slide.shapes.add_shape(1, Inches(0.5), Inches(1.1), Inches(12.3), Inches(5.9))
     box.fill.solid()
     box.fill.fore_color.rgb = RGBColor(0x16, 0x1B, 0x22)
     box.line.color.rgb = _ACCENT
 
-    txBox = slide.shapes.add_textbox(
-        Inches(0.7), Inches(1.25), Inches(12.0), Inches(5.6))
+    txBox = slide.shapes.add_textbox(Inches(0.7), Inches(1.25), Inches(12.0), Inches(5.6))
     tf = txBox.text_frame
     tf.word_wrap = False
-    p  = tf.paragraphs[0]
+    p = tf.paragraphs[0]
     run = p.add_run()
     run.text = flow
     run.font.size = Pt(12)
@@ -219,7 +303,7 @@ def _dataflow_slide(prs):
 
 _PATTERNS = [
     {
-        "title":    "Pre-allocated Static Heap",
+        "title": "Pre-allocated Static Heap",
         "subtitle": "Prevent GC fragmentation with fixed-size bytearrays at boot",
         "bullets": [
             "Allocate RADAR_RX_BUF (2 KB) and RADAR_FRAME_BUF (256 B) in boot.py",
@@ -241,7 +325,7 @@ _PATTERNS = [
         ),
     },
     {
-        "title":    "Hard/Soft Interrupt Split",
+        "title": "Hard/Soft Interrupt Split",
         "subtitle": "Near-instant hardware response with full Python safety",
         "bullets": [
             "Hard IRQ: fires at hardware speed, memory allocation FORBIDDEN",
@@ -269,7 +353,7 @@ _PATTERNS = [
         ),
     },
     {
-        "title":    "Cooperative Heartbeat Watchdog",
+        "title": "Cooperative Heartbeat Watchdog",
         "subtitle": "WDT is fed only when every task proves it is alive",
         "bullets": [
             "Each task owns a named slot in Scheduler._heartbeats dict",
@@ -299,7 +383,7 @@ _PATTERNS = [
         ),
     },
     {
-        "title":    "State-Machine Frame Parser",
+        "title": "State-Machine Frame Parser",
         "subtitle": "Non-blocking byte-by-byte parsing of MR60 radar frames",
         "bullets": [
             "Five states: WAIT_H1 -> WAIT_H2 -> READ_LEN -> READ_PAY -> VERIFY",
@@ -334,14 +418,15 @@ _PATTERNS = [
 
 def build(out_path: str) -> None:
     prs = Presentation()
-    prs.slide_width  = _W
+    prs.slide_width = _W
     prs.slide_height = _H
 
     _title_slide(prs)
 
     for i, pat in enumerate(_PATTERNS, start=1):
         _pattern_slide(
-            prs, i,
+            prs,
+            i,
             pat["title"],
             pat["subtitle"],
             pat["bullets"],
@@ -358,7 +443,6 @@ def build(out_path: str) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate pyconn slide deck")
-    parser.add_argument("--out", default="output/pyconn_overview.pptx",
-                        help="Output .pptx path")
+    parser.add_argument("--out", default="output/pyconn_overview.pptx", help="Output .pptx path")
     args = parser.parse_args()
     build(args.out)
